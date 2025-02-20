@@ -2,6 +2,7 @@ import pygame
 import random
 from enemy import EnemyFactory, BossEnemy  # Import BossEnemy and EnemyFactory
 
+
 class GameplayScreen:
     def __init__(self, game, player):
         self.game = game
@@ -27,8 +28,7 @@ class GameplayScreen:
         """Update game logic here (e.g., check for enemy defeat)."""
         if self.enemy.health <= 0:
             if isinstance(self.enemy, BossEnemy):
-                self.win_game()
-                self.game.running = False  # Stop the game loop
+                self.win_game()  # Only handle the win condition here
             else:
                 print(f"Enemy defeated! Moving to round {self.round + 1}")
                 self.round += 1
@@ -36,6 +36,7 @@ class GameplayScreen:
                     self.enemy = self.create_enemy()  # Create a new enemy for the next round
                 else:
                     self.enemy = self.create_boss()  # Spawn boss in the final round
+
 
     def draw(self, screen):
         """Draw gameplay elements on the screen."""
@@ -60,6 +61,7 @@ class GameplayScreen:
         pygame.display.flip()
 
     def win_game(self):
+        from screens.starting_area_screen import StartingAreaScreen
         """Handles the win condition (after defeating the final boss)."""
         # Display victory message
         font = pygame.font.Font(None, 60)
@@ -68,11 +70,10 @@ class GameplayScreen:
         pygame.display.flip()
 
         pygame.time.wait(2000)  # Wait for 2 seconds to show the victory message
-        
-        # After winning, switch back to the starting area screen
-        
-        from screens.starting_area_screen import StartingAreaScreen
-        self.game.change_screen(StartingAreaScreen(self.game, self.game.selected_player))  # Switch back to StartingAreaScreen
+
+        # Switch back to the starting area screen
+        self.game.change_screen(StartingAreaScreen(self.game, self.player))
+
 
     def create_enemy(self):
         """Randomly create a normal enemy."""
