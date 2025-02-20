@@ -18,11 +18,23 @@ class TavernScreen:
         self.player_cards = self.load_saved_cards()
         self.all_cards = get_predefined_cards()
 
-        self.selected_card_index = 0
-        self.selected_tavern_card_index = 0
+        self.selected_card_index = None
+        self.selected_tavern_card_index = None
 
         # Load card images
         self.card_images = self.load_card_images()
+
+        # Card display settings
+        self.card_width = 150
+        self.card_height = 200
+        self.card_spacing = 130
+
+        # Calculate centered positions
+        self.start_x_player = (1200 - (4 * self.card_spacing)) // 2
+        self.card_y_player = 500
+
+        self.start_x_tavern = (1200 - (len(self.all_cards) * self.card_spacing)) // 2
+        self.card_y_tavern = 250
 
     def load_card_images(self):
         """Loads images for all predefined cards."""
@@ -55,26 +67,41 @@ class TavernScreen:
 
     def swap_card(self):
         """Swaps selected player card with a tavern card."""
-        self.player_cards[self.selected_card_index], self.all_cards[self.selected_tavern_card_index] = (
-            self.all_cards[self.selected_tavern_card_index], self.player_cards[self.selected_card_index]
-        )
+        if self.selected_card_index is not None and self.selected_tavern_card_index is not None:
+            self.player_cards[self.selected_card_index], self.all_cards[self.selected_tavern_card_index] = (
+                self.all_cards[self.selected_tavern_card_index], self.player_cards[self.selected_card_index]
+            )
+            self.selected_card_index = None
+            self.selected_tavern_card_index = None  # Reset selection
 
     def handle_events(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game.running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self.selected_card_index = (self.selected_card_index - 1) % 4
-                elif event.key == pygame.K_DOWN:
-                    self.selected_card_index = (self.selected_card_index + 1) % 4
-                elif event.key == pygame.K_LEFT:
-                    self.selected_tavern_card_index = (self.selected_tavern_card_index - 1) % len(self.all_cards)
-                elif event.key == pygame.K_RIGHT:
-                    self.selected_tavern_card_index = (self.selected_tavern_card_index + 1) % len(self.all_cards)
-                elif event.key == pygame.K_RETURN:
-                    self.swap_card()
-                elif event.key == pygame.K_e:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left mouse button
+                    # Check if a player card is clicked
+                    for i in range(len(self.player_cards)):
+                        card_x = self.start_x_player + i * self.card_spacing
+                        if card_x <= mouse_x <= card_x + self.card_width and \
+                                self.card_y_player <= mouse_y <= self.card_y_player + self.card_height:
+                            self.selected_card_index = i
+
+                    # Check if a tavern card is clicked
+                    for i in range(len(self.all_cards)):
+                        card_x = self.start_x_tavern + i * self.card_spacing
+                        if card_x <= mouse_x <= card_x + self.card_width and \
+                                self.card_y_tavern <= mouse_y <= self.card_y_tavern + self.card_height:
+                            self.selected_tavern_card_index = i
+
+                    # Swap if both selections are made
+                    if self.selected_card_index is not None and self.selected_tavern_card_index is not None:
+                        self.swap_card()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
                     self.return_to_game()
 
     def update(self):
@@ -94,39 +121,46 @@ class TavernScreen:
         title_text = self.font.render("Edit Your Deck", True, (255, 255, 255))
         screen.blit(title_text, ((1200 - title_text.get_width()) // 2, 30))
 
-        # Centering player cards
-        screen_width = 1200
-        card_width = 150
-        card_height = 200
-        card_spacing = 130  # Space between cards
-
-        # Center player cards horizontally
-        total_card_width = 4 * card_spacing
-        start_x_player = (screen_width - total_card_width) // 2
-
-        card_y_player = 500  # Player's cards row
-        card_y_tavern = 250  # Tavern's cards row
+        mouse_x, mouse_y = pygame.mouse.get_pos()
 
         # Draw Player Cards (Bottom Row - Centered)
         for i, card in enumerate(self.player_cards):
-            card_x = start_x_player + i * card_spacing
-            if self.card_images.get(card.name):
-                screen.blit(self.card_images[card.name], (card_x, card_y_player))
-            if i == self.selected_card_index:  # Highlight selected card
-                pygame.draw.rect(screen, (255, 255, 0), (card_x, card_y_player, card_width, card_height), 5)
+            card_x = self.start_x_player + i * self.card_spacing
 
-        # Center tavern cards horizontally
-        total_tavern_card_width = len(self.all_cards) * card_spacing
-        start_x_tavern = (screen_width - total_tavern_card_width) // 2
+            # Check if mouse is hovering over this card
+            is_hovered = card_x <= mouse_x <= card_x + self.card_width and \
+                         self.card_y_player <= mouse_y <= self.card_y_player + self.card_height
+
+            # Resize for hover effect
+            size_offset = 10 if is_hovered else 0
+            hover_width = self.card_width + size_offset
+            hover_height = self.card_height + size_offset
+            hover_x = card_x - size_offset // 2
+            hover_y = self.card_y_player - size_offset // 2
+
+            if self.card_images.get(card.name):
+                scaled_image = pygame.transform.scale(self.card_images[card.name], (hover_width, hover_height))
+                screen.blit(scaled_image, (hover_x, hover_y))
 
         # Draw Tavern Cards (Top Row - Centered)
         for i, card in enumerate(self.all_cards):
-            card_x = start_x_tavern + i * card_spacing  # Start drawing from the centered position
+            card_x = self.start_x_tavern + i * self.card_spacing
+
+            # Check if mouse is hovering over this card
+            is_hovered = card_x <= mouse_x <= card_x + self.card_width and \
+                         self.card_y_tavern <= mouse_y <= self.card_y_tavern + self.card_height
+
+            # Resize for hover effect
+            size_offset = 10 if is_hovered else 0
+            hover_width = self.card_width + size_offset
+            hover_height = self.card_height + size_offset
+            hover_x = card_x - size_offset // 2
+            hover_y = self.card_y_tavern - size_offset // 2
+
             if self.card_images.get(card.name):
-                screen.blit(self.card_images[card.name], (card_x, card_y_tavern))
-            if i == self.selected_tavern_card_index:
-                pygame.draw.rect(screen, (0, 255, 255), (card_x, card_y_tavern, card_width, card_height), 5)
+                scaled_image = pygame.transform.scale(self.card_images[card.name], (hover_width, hover_height))
+                screen.blit(scaled_image, (hover_x, hover_y))
 
         # Instructions at the bottom
-        info_text = self.info_font.render("UP/DOWN: Select your card | LEFT/RIGHT: Browse Tavern | ENTER: Swap | E: Exit", True, (255, 255, 255))
-        screen.blit(info_text, ((screen_width - info_text.get_width()) // 2, 750))
+        info_text = self.info_font.render("Click on a player card, then a tavern card to swap | E: Exit", True, (255, 255, 255))
+        screen.blit(info_text, ((1200 - info_text.get_width()) // 2, 750))
