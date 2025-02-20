@@ -1,7 +1,7 @@
 import pygame
 import random
 from enemy import EnemyFactory, BossEnemy  # Import BossEnemy and EnemyFactory
-
+from card import CardFactory, get_predefined_cards, AttackCard, HealCard, ShieldCard  # Import CardFactory, get_predefined_cards, AttackCard, HealCard, ShieldCard
 
 class GameplayScreen:
     def __init__(self, game, player):
@@ -15,6 +15,10 @@ class GameplayScreen:
         self.background = pygame.image.load('my-pygame-game/src/assets/game_bg.png')
         self.background = pygame.transform.scale(self.background, (self.game.screen.get_width(), self.game.screen.get_height()))
 
+        # Load cards
+        self.cards = get_predefined_cards()
+        self.selected_card = None
+
     def handle_events(self):
         """Handle events for the gameplay screen."""
         for event in pygame.event.get():
@@ -23,12 +27,21 @@ class GameplayScreen:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     self.attack_enemy()
+                elif event.key == pygame.K_1:
+                    self.use_card(0)  # Use the first card
+                elif event.key == pygame.K_2:
+                    self.use_card(1)  # Use the second card
+                elif event.key == pygame.K_3:
+                    self.use_card(2)  # Use the third card
+                elif event.key == pygame.K_4:
+                    self.use_card(3)  # Use the fourth card
 
     def update(self):
         """Update game logic here (e.g., check for enemy defeat)."""
         if self.enemy.health <= 0:
             if isinstance(self.enemy, BossEnemy):
-                self.win_game()  # Only handle the win condition here
+                self.win_game()
+                self.game.running = False  # Stop the game loop
             else:
                 print(f"Enemy defeated! Moving to round {self.round + 1}")
                 self.round += 1
@@ -36,7 +49,6 @@ class GameplayScreen:
                     self.enemy = self.create_enemy()  # Create a new enemy for the next round
                 else:
                     self.enemy = self.create_boss()  # Spawn boss in the final round
-
 
     def draw(self, screen):
         """Draw gameplay elements on the screen."""
@@ -58,10 +70,14 @@ class GameplayScreen:
         screen.blit(round_text, (10, 50))
         screen.blit(enemy_hp_text, (self.game.screen.get_width() - 200, 10))
 
+        # Draw cards
+        for i, card in enumerate(self.cards):
+            card_text = font.render(f"{i+1}: {card.name}", True, (255, 255, 255))
+            screen.blit(card_text, (10, 100 + i * 40))
+
         pygame.display.flip()
 
     def win_game(self):
-        from screens.starting_area_screen import StartingAreaScreen
         """Handles the win condition (after defeating the final boss)."""
         # Display victory message
         font = pygame.font.Font(None, 60)
@@ -70,10 +86,11 @@ class GameplayScreen:
         pygame.display.flip()
 
         pygame.time.wait(2000)  # Wait for 2 seconds to show the victory message
-
-        # Switch back to the starting area screen
-        self.game.change_screen(StartingAreaScreen(self.game, self.player))
-
+        
+        # After winning, switch back to the starting area screen
+        
+        from screens.starting_area_screen import StartingAreaScreen
+        self.game.change_screen(StartingAreaScreen(self.game, self.game.selected_player))  # Switch back to StartingAreaScreen
 
     def create_enemy(self):
         """Randomly create a normal enemy."""
@@ -91,6 +108,13 @@ class GameplayScreen:
         damage = random.randint(5, 15)  # Random damage value
         self.enemy.health -= damage
         print(f"Attacked enemy! Damage: {damage}, Enemy HP: {self.enemy.health}")
+
+    def use_card(self, card_index):
+        """Use a card from the player's hand."""
+        if 0 <= card_index < len(self.cards):
+            card = self.cards[card_index]
+            card.use(self.enemy if isinstance(card, AttackCard) else self.player)
+            print(f"Used card: {card.name}")
 
     def run(self):
         """Main loop for gameplay."""
