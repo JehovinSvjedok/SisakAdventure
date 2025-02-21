@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sisak Adventure
 
 ## Overview
@@ -47,3 +48,53 @@ Feel free to submit issues or pull requests if you would like to contribute to t
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more details.
+=======
+# Game Project
+
+This is a simple game project built using Python and Pygame. The game includes a start screen, player selection screen, and different game screens such as a house and portal.
+
+## Project Structure
+
+
+## Files Description
+
+- **Start.py**: The entry point of the game. Displays the start screen and navigates to the player selection screen.
+- **biranje_igraca.py**: Handles the player selection screen where the user can choose a character.
+- **glavna.py**: Contains the main game logic where the character can move left and right.
+- **glavna2.py**: Another main game file with additional features such as entering a house or portal.
+- **kuca.py**: Represents the house screen where the user can swap cards.
+- **portal.py**: Represents the portal screen where the user can interact with circles.
+- **test.py**: A test file for loading and displaying character characteristics.
+- **saved_hand.json**: A JSON file that stores the saved hand of cards.
+- **Slike/**: A directory containing images and music used in the game.
+
+## How to Run
+
+1. Ensure you have Python and Pygame installed.
+2. Run the [`Start.py`](Start.py ) file to start the game:
+   ```sh
+   python Start.py
+
+
+Controls
+Start Screen: Press any key to continue to the player selection screen.
+Player Selection Screen: Click on a character to select it.
+Main Game (glavna.py and glavna2.py):
+D: Move right
+A: Move left
+E: Interact with objects (house or portal)
+House Screen (kuca.py):
+E: Toggle swap mode
+S: Save hand
+Portal Screen (portal.py): Click on circles to interact.
+Dependencies
+Python 3.x
+Pygame
+License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+Acknowledgements
+Pygame library for providing the tools to create this game.
+All contributors and supporters of this project.
+Enjoy the game! ```
+>>>>>>> 02a25cb72fe52cec8076667b1ce05b74d3cb43a0

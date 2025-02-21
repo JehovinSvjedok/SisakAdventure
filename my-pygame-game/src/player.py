@@ -12,6 +12,7 @@ class Player:
         """
         self.name = name
         self.health = health
+        self.shield = 0
         self.image = pygame.image.load(image_path)  # Load player image
         self.image = pygame.transform.scale(self.image, (90, 90))  # Adjust size as needed
         self.rect = self.image.get_rect()

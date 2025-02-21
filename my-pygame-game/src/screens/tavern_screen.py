@@ -53,14 +53,14 @@ class TavernScreen:
         try:
             with open(self.SAVE_FILE, "r") as file:
                 card_data = json.load(file)
-                return [CardFactory.create_card(c["type"], c["name"], c["value"]) for c in card_data]
+                return [CardFactory.create_card(c["type"], c["name"], c["value"], c.get("image_path", "default.png")) for c in card_data]
         except (FileNotFoundError, json.JSONDecodeError):
             return get_predefined_cards()[:4]
 
     def save_cards(self):
         with open(self.SAVE_FILE, "w") as file:
             json.dump(
-                [{"type": card.__class__.__name__.replace("Card", "").lower(), "name": card.name, "value": card.value}
+                [{"type": card.__class__.__name__.replace("Card", "").lower(), "name": card.name, "value": card.value, "image_path": card.image_path}
                  for card in self.player_cards],
                 file
             )
@@ -72,7 +72,8 @@ class TavernScreen:
                 self.all_cards[self.selected_tavern_card_index], self.player_cards[self.selected_card_index]
             )
             self.selected_card_index = None
-            self.selected_tavern_card_index = None  # Reset selection
+            # Reset selection
+            self.save_cards()  # Save the updated cards
 
     def handle_events(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
